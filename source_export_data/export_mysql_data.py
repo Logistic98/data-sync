@@ -5,14 +5,14 @@ from log import logger
 
 
 # 将符合条件的MySQL数据查出保存为txt
-def mysql_export_txt(mysql_connect, table_list, original_data_path, last_job_time, now_time):
+def mysql_export_txt(mysql_connect, table_list, original_data_path, last_job_time, now_time, mysql_time_field):
     for table_name in table_list:
         logger.info("正在保存{}表的数据".format(table_name))
         data_list = []
         if last_job_time == "":
-            sql = "SELECT * FROM {} where update_time <= '{}'".format(table_name, str(now_time))
+            sql = "SELECT * FROM {} where {} <= '{}'".format(table_name, mysql_time_field, str(now_time))
         else:
-            sql = "SELECT * FROM {} where update_time <= '{}' and update_time > '{}'".format(table_name, str(now_time), str(last_job_time))
+            sql = "SELECT * FROM {} where {} <= '{}' and {} > '{}'".format(table_name, mysql_time_field, str(now_time), mysql_time_field, str(last_job_time))
         logger.info("执行的sql语句为{}".format(sql))
         try:
             cursor = mysql_connect.cursor()
@@ -36,5 +36,6 @@ def export_mysql_data_main(source_export_dict, original_data_path, last_job_time
                             password=str(source_export_dict['mysql_password']), port=int(source_export_dict['mysql_port']),
                             db=str(source_export_dict['mysql_db']), charset='utf8')
     table_list = ''.join(source_export_dict['mysql_table_list'].split()).split(",")
-    mysql_export_txt(mysql_connect, table_list, original_data_path, last_job_time, now_time)
+    mysql_time_field = str(source_export_dict['mysql_time_field'])
+    mysql_export_txt(mysql_connect, table_list, original_data_path, last_job_time, now_time, mysql_time_field)
     mysql_connect.close()

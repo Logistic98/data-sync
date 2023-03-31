@@ -13,13 +13,13 @@ def write_list_to_json(list, json_file_path):
 
 
 # 将符合条件的ES数据查出保存为json
-def es_export_json(es_connect, es_size, es_scroll, index_list, original_data_path, last_job_time, now_time):
+def es_export_json(es_connect, es_size, es_scroll, index_list, original_data_path, last_job_time, now_time, es_time_field):
     for i in index_list:
         logger.info("正在保存{}索引的数据".format(i))
         if last_job_time != "":
             query = {
                 "range": {
-                    "update_time": {
+                    es_time_field: {
                         # 大于上一次读取结束时间，小于等于本次读取开始时间
                         "gt": last_job_time,
                         "lte": now_time
@@ -30,7 +30,7 @@ def es_export_json(es_connect, es_size, es_scroll, index_list, original_data_pat
         else:
             query = {
                 "range": {
-                    "update_time": {
+                    es_time_field: {
                         # 小于等于本次读取开始时间
                         "lte": now_time
                     }
@@ -77,4 +77,5 @@ def export_es_data_main(source_export_dict, original_data_path, last_job_time, n
     index_list = ''.join(source_export_dict['es_index_list'].split()).split(",")
     es_size = int(source_export_dict['es_size'])
     es_scroll = str(source_export_dict['es_scroll'])
-    es_export_json(es_connect, es_size, es_scroll, index_list, original_data_path, last_job_time, now_time)
+    es_time_field = str(source_export_dict['es_time_field'])
+    es_export_json(es_connect, es_size, es_scroll, index_list, original_data_path, last_job_time, now_time, es_time_field)

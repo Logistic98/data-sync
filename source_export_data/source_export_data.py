@@ -33,6 +33,7 @@ def read_config(config_path):
     es_scroll = cfg.get('SOURCE_ES', 'scroll')
     es_size = cfg.get('SOURCE_ES', 'size')
     es_index_list = cfg.get('SOURCE_ES', 'index_list')
+    es_time_field = cfg.get('SOURCE_ES', 'time_field')
     mysql_is_open = cfg.get('SOURCE_MYSQL', 'is_open')
     mysql_host = cfg.get('SOURCE_MYSQL', 'host')
     mysql_port = cfg.get('SOURCE_MYSQL', 'port')
@@ -40,6 +41,7 @@ def read_config(config_path):
     mysql_password = cfg.get('SOURCE_MYSQL', 'password')
     mysql_db = cfg.get('SOURCE_MYSQL', 'db')
     mysql_table_list = cfg.get('SOURCE_MYSQL', 'table_list')
+    mysql_time_field = cfg.get('SOURCE_MYSQL', 'time_field')
     source_export_dict = {}
     source_export_dict['last_job_time_path'] = last_job_time_path
     source_export_dict['original_data_base_path'] = original_data_base_path
@@ -56,6 +58,7 @@ def read_config(config_path):
     source_export_dict['es_scroll'] = es_scroll
     source_export_dict['es_size'] = es_size
     source_export_dict['es_index_list'] = es_index_list
+    source_export_dict['es_time_field'] = es_time_field
     source_export_dict['mysql_is_open'] = mysql_is_open
     source_export_dict['mysql_host'] = mysql_host
     source_export_dict['mysql_port'] = mysql_port
@@ -63,6 +66,7 @@ def read_config(config_path):
     source_export_dict['mysql_password'] = mysql_password
     source_export_dict['mysql_db'] = mysql_db
     source_export_dict['mysql_table_list'] = mysql_table_list
+    source_export_dict['mysql_time_field'] = mysql_time_field
     return source_export_dict
 
 
@@ -184,12 +188,6 @@ if __name__ == '__main__':
     # 配置定时任务，可同时启动多个
     logger.info("定时任务规则：{}".format("每隔30分钟运行一次job"))
     schedule.every(30).minutes.do(source_export_data_main_job)
-    # logger.info("定时任务规则：{}".format("每隔1小时运行一次job"))
-    # schedule.every().hour.do(source_export_data_main_job)
-    # logger.info("定时任务规则：{}".format("每天在23:59时间点运行job"))
-    # schedule.every().day.at("23:59").do(source_export_data_main_job)
-    # logger.info("定时任务规则：{}".format("每周一运行一次job"))
-    # schedule.every().monday.do(source_export_data_main_job)
 
     logger.info("==========加载配置完成==========")
 

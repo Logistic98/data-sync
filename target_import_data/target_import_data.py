@@ -173,12 +173,6 @@ if __name__ == '__main__':
     # 配置定时任务，可同时启动多个
     logger.info("定时任务规则：{}".format("每隔30分钟运行一次job"))
     schedule.every(30).minutes.do(target_import_data_main_job)
-    # logger.info("定时任务规则：{}".format("每隔1小时运行一次job"))
-    # schedule.every().hour.do(target_import_data_main_job)
-    # logger.info("定时任务规则：{}".format("每天在23:59时间点运行job"))
-    # schedule.every().day.at("23:59").do(target_import_data_main_job)
-    # logger.info("定时任务规则：{}".format("每周一运行一次job"))
-    # schedule.every().monday.do(target_import_data_main_job)
 
     logger.info("==========加载配置完成==========")
 
