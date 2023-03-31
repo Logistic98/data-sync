@@ -1,0 +1,7 @@
+[RSA]
+# RSA密钥
+rsa_key = your_rsa_key
+# 私钥生成路径（导入数据的目录）
+private_rsa_key_path = ../target_import_data/private_rsa_key.bin
+# 公钥生成路径（导出数据的目录）
+public_rsa_key_path = ../source_export_data/public_rsa_key.bin

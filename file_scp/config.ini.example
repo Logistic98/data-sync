@@ -1,0 +1,35 @@
+[PULL]
+# 远程服务器IP
+host_ip = 111.111.111.111
+# 远程服务器端口
+host_port = 22
+# 远程服务器用户名
+host_username = root
+# 远程服务器密码
+host_password = your_password
+# 这个是需要拉取文件所在的远程目录,目录地址最后要加/
+remote_path = /root/remote_path/
+# 这个是把拉取文件存放的本地目录,目录地址最后要加/
+local_path = /Users/local_path/
+# 拉取文件名包含关键词
+pull_file_key = data
+# 下拉的文件格式，即文件后缀名,扩展名需要写.
+pull_file_suffix = .zip
+
+[PUSH]
+# 远程服务器IP
+host_ip = 111.111.111.111
+# 远程服务器端口
+host_port = 22
+# 远程服务器用户名
+host_username = root
+# 远程服务器密码
+host_password = your_password
+# 这个是需要推送文件所在的远程目录,目录地址最后要加/
+remote_path = /root/remote_path/
+# 这个是把推送文件存放的本地目录,目录地址最后要加/
+local_path = /Users/local_path/
+# 拉取文件名包含关键词
+pull_file_key = data
+# 下拉的文件格式，即文件后缀名,扩展名需要写.
+pull_file_suffix = .zip

@@ -1,0 +1,45 @@
+[PATH]
+# 上次同步时间的记录文件
+last_job_time_path = last_job_time.json
+# 原始数据文件目录
+original_data_base_path = original_data
+# 加密数据文件目录
+encrypt_data_base_path = encrypt_data
+# 加密压缩的数据包目录
+data_package_base_path = data_package
+
+[RSA]
+# RSA密钥
+rsa_key = your_rsa_key
+# RSA私钥
+private_rsa_key_path = private_rsa_key.bin
+
+[TARGET_ES]
+# 是否开启，取值true或false
+is_open = true
+# IP地址
+host = 111.111.111.111
+# 端口号
+port = 9200
+# 用户名
+user = your_es_user
+# 密码
+password = your_es_password
+# 连接超时时间（ms）
+timeout = 60
+# 单次批量插入数据量
+step = 1000
+
+[TARGET_MYSQL]
+# 是否开启，取值true或false
+is_open = true
+# IP地址
+host = 111.111.111.111
+# 端口号
+port = 3306
+# 用户名
+user = your_mysql_user
+# 密码
+password = your_mysql_password
+# 数据库
+db = your_mysql_db
