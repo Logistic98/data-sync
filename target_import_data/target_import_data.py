@@ -18,46 +18,13 @@ from utils import dict_to_json_file, get_now_time, unzip_data_dir, decrypt_file,
 def read_config(config_path):
     cfg = ConfigParser()
     cfg.read(config_path, encoding='utf-8')
-    last_job_time_path = cfg.get('PATH', 'last_job_time_path')
-    original_data_base_path = cfg.get('PATH', 'original_data_base_path')
-    encrypt_data_base_path = cfg.get('PATH', 'encrypt_data_base_path')
-    data_package_base_path = cfg.get('PATH', 'data_package_base_path')
-    rsa_key = cfg.get('RSA', 'rsa_key')
-    private_rsa_key_path = cfg.get('RSA', 'private_rsa_key_path')
-    es_is_open = cfg.get('TARGET_ES', 'is_open')
-    es_host = cfg.get('TARGET_ES', 'host')
-    es_port = cfg.get('TARGET_ES', 'port')
-    es_user = cfg.get('TARGET_ES', 'user')
-    es_password = cfg.get('TARGET_ES', 'password')
-    es_timeout = cfg.get('TARGET_ES', 'timeout')
-    es_step = cfg.get('TARGET_ES', 'step')
-    mysql_is_open = cfg.get('TARGET_MYSQL', 'is_open')
-    mysql_host = cfg.get('TARGET_MYSQL', 'host')
-    mysql_port = cfg.get('TARGET_MYSQL', 'port')
-    mysql_user = cfg.get('TARGET_MYSQL', 'user')
-    mysql_password = cfg.get('TARGET_MYSQL', 'password')
-    mysql_db = cfg.get('TARGET_MYSQL', 'db')
-    target_import_dict = {}
-    target_import_dict['last_job_time_path'] = last_job_time_path
-    target_import_dict['original_data_base_path'] = original_data_base_path
-    target_import_dict['encrypt_data_base_path'] = encrypt_data_base_path
-    target_import_dict['data_package_base_path'] = data_package_base_path
-    target_import_dict['rsa_key'] = rsa_key
-    target_import_dict['private_rsa_key_path'] = private_rsa_key_path
-    target_import_dict['es_is_open'] = es_is_open
-    target_import_dict['es_host'] = es_host
-    target_import_dict['es_port'] = es_port
-    target_import_dict['es_user'] = es_user
-    target_import_dict['es_password'] = es_password
-    target_import_dict['es_timeout'] = es_timeout
-    target_import_dict['es_step'] = es_step
-    target_import_dict['mysql_is_open'] = mysql_is_open
-    target_import_dict['mysql_host'] = mysql_host
-    target_import_dict['mysql_port'] = mysql_port
-    target_import_dict['mysql_user'] = mysql_user
-    target_import_dict['mysql_password'] = mysql_password
-    target_import_dict['mysql_db'] = mysql_db
-    return target_import_dict
+    section_list = cfg.sections()
+    config_dict = {}
+    for section in section_list:
+        section_item = cfg.items(section)
+        for item in section_item:
+            config_dict[item[0]] = item[1]
+    return config_dict
 
 
 # 目录路径不存在时自动创建

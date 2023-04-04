@@ -13,16 +13,13 @@ from configparser import ConfigParser
 def read_config(config_path):
     cfg = ConfigParser()
     cfg.read(config_path, encoding='utf-8')
-    last_job_time_path = cfg.get('PATH', 'last_job_time_path')
-    original_data_base_path = cfg.get('PATH', 'original_data_base_path')
-    encrypt_data_base_path = cfg.get('PATH', 'encrypt_data_base_path')
-    data_package_base_path = cfg.get('PATH', 'data_package_base_path')
-    source_export_dict = {}
-    source_export_dict['last_job_time_path'] = last_job_time_path
-    source_export_dict['original_data_base_path'] = original_data_base_path
-    source_export_dict['encrypt_data_base_path'] = encrypt_data_base_path
-    source_export_dict['data_package_base_path'] = data_package_base_path
-    return source_export_dict
+    section_list = cfg.sections()
+    config_dict = {}
+    for section in section_list:
+        section_item = cfg.items(section)
+        for item in section_item:
+            config_dict[item[0]] = item[1]
+    return config_dict
 
 
 # 若目录存在，则递归删除目录

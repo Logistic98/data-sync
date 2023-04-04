@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from configparser import RawConfigParser
+from configparser import ConfigParser
 from Crypto.PublicKey import RSA
 
 
-def read_config():
-    cfg = RawConfigParser()
-    cfg.read('./config.ini', encoding='utf-8')
-    rsa_key = cfg.get('RSA', 'rsa_key')
-    private_rsa_key_path = cfg.get('RSA', 'private_rsa_key_path')
-    public_rsa_key_path = cfg.get('RSA', 'public_rsa_key_path')
-    rsa_config = {}
-    rsa_config['rsa_key'] = rsa_key
-    rsa_config['private_rsa_key_path'] = private_rsa_key_path
-    rsa_config['public_rsa_key_path'] = public_rsa_key_path
-    return rsa_config
+# 读取配置文件
+def read_config(config_path):
+    cfg = ConfigParser()
+    cfg.read(config_path, encoding='utf-8')
+    section_list = cfg.sections()
+    config_dict = {}
+    for section in section_list:
+        section_item = cfg.items(section)
+        for item in section_item:
+            config_dict[item[0]] = item[1]
+    return config_dict
 
 
 def create_rsa_keys(code, private_rsa_key_path, public_rsa_key_path):
@@ -36,6 +36,6 @@ def create_rsa_keys(code, private_rsa_key_path, public_rsa_key_path):
 
 if __name__ == '__main__':
     # 读取配置文件
-    rsa_dict = read_config()
+    rsa_dict = read_config('./config.ini')
     # 在指定路径生成RSA私钥和公钥
     create_rsa_keys(rsa_dict['rsa_key'], rsa_dict['private_rsa_key_path'], rsa_dict['public_rsa_key_path'])
