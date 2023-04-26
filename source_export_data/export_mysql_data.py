@@ -23,7 +23,7 @@ def mysql_export_txt(mysql_connect, table_list, original_data_path, last_job_tim
                 data_list.append(row)
         except Exception as e:
             logger.error("MySQL表数据导出至txt文件的过程出错：{}".format(e))
-        txt_path = original_data_path + "/" + table_name + ".txt"
+        txt_path = "{}/{}.txt".format(original_data_path, table_name)
         with open(txt_path, "w+", encoding='utf-8') as f:
             f.write(str(data_list))
             f.close()

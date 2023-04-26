@@ -57,7 +57,7 @@ def es_export_json(es_connect, es_size, es_scroll, index_list, original_data_pat
                     source_data = hit['_source']
                     source_data['_id'] = hit['_id']
                     source_list.append(source_data)
-            json_file_path = original_data_path + "/" + str(i) + ".json"
+            json_file_path = "{}/{}.json".format(original_data_path, str(i))
             if len(source_list) != 0:
                 write_list_to_json(source_list, json_file_path)
                 logger.info('{}索引的数据已保存至{}路径，导出的数据总量为{}'.format(str(i), json_file_path, str(len(source_list))))
@@ -70,7 +70,7 @@ def es_export_json(es_connect, es_size, es_scroll, index_list, original_data_pat
 # 将符合条件的ES数据查出保存为json--调用入口
 def export_es_data_main(source_export_dict, original_data_path, last_job_time, now_time):
     es_connect = Elasticsearch(
-        hosts=[str(source_export_dict['es_host']) + ":" + str(source_export_dict['es_port'])],
+        hosts=["{}:{}".format(str(source_export_dict['es_host']), str(source_export_dict['es_port']))],
         http_auth=(str(source_export_dict['es_user']), str(source_export_dict['es_password'])),
         request_timeout=int(source_export_dict['es_timeout'])
     )

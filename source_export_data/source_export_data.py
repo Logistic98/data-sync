@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from datetime import datetime
 from decimal import Decimal
 from configparser import ConfigParser
 import schedule
@@ -18,56 +19,13 @@ from utils import dict_to_json_file, read_json_to_dict, encrypt_data_file, zip_d
 def read_config(config_path):
     cfg = ConfigParser()
     cfg.read(config_path, encoding='utf-8')
-    last_job_time_path = cfg.get('PATH', 'last_job_time_path')
-    original_data_base_path = cfg.get('PATH', 'original_data_base_path')
-    encrypt_data_base_path = cfg.get('PATH', 'encrypt_data_base_path')
-    data_package_base_path = cfg.get('PATH', 'data_package_base_path')
-    rsa_key = cfg.get('RSA', 'rsa_key')
-    public_rsa_key_path = cfg.get('RSA', 'public_rsa_key_path')
-    es_is_open = cfg.get('SOURCE_ES', 'is_open')
-    es_host = cfg.get('SOURCE_ES', 'host')
-    es_port = cfg.get('SOURCE_ES', 'port')
-    es_user = cfg.get('SOURCE_ES', 'user')
-    es_password = cfg.get('SOURCE_ES', 'password')
-    es_timeout = cfg.get('SOURCE_ES', 'timeout')
-    es_scroll = cfg.get('SOURCE_ES', 'scroll')
-    es_size = cfg.get('SOURCE_ES', 'size')
-    es_index_list = cfg.get('SOURCE_ES', 'index_list')
-    es_time_field = cfg.get('SOURCE_ES', 'time_field')
-    mysql_is_open = cfg.get('SOURCE_MYSQL', 'is_open')
-    mysql_host = cfg.get('SOURCE_MYSQL', 'host')
-    mysql_port = cfg.get('SOURCE_MYSQL', 'port')
-    mysql_user = cfg.get('SOURCE_MYSQL', 'user')
-    mysql_password = cfg.get('SOURCE_MYSQL', 'password')
-    mysql_db = cfg.get('SOURCE_MYSQL', 'db')
-    mysql_table_list = cfg.get('SOURCE_MYSQL', 'table_list')
-    mysql_time_field = cfg.get('SOURCE_MYSQL', 'time_field')
-    source_export_dict = {}
-    source_export_dict['last_job_time_path'] = last_job_time_path
-    source_export_dict['original_data_base_path'] = original_data_base_path
-    source_export_dict['encrypt_data_base_path'] = encrypt_data_base_path
-    source_export_dict['data_package_base_path'] = data_package_base_path
-    source_export_dict['rsa_key'] = rsa_key
-    source_export_dict['public_rsa_key_path'] = public_rsa_key_path
-    source_export_dict['es_is_open'] = es_is_open
-    source_export_dict['es_host'] = es_host
-    source_export_dict['es_port'] = es_port
-    source_export_dict['es_user'] = es_user
-    source_export_dict['es_password'] = es_password
-    source_export_dict['es_timeout'] = es_timeout
-    source_export_dict['es_scroll'] = es_scroll
-    source_export_dict['es_size'] = es_size
-    source_export_dict['es_index_list'] = es_index_list
-    source_export_dict['es_time_field'] = es_time_field
-    source_export_dict['mysql_is_open'] = mysql_is_open
-    source_export_dict['mysql_host'] = mysql_host
-    source_export_dict['mysql_port'] = mysql_port
-    source_export_dict['mysql_user'] = mysql_user
-    source_export_dict['mysql_password'] = mysql_password
-    source_export_dict['mysql_db'] = mysql_db
-    source_export_dict['mysql_table_list'] = mysql_table_list
-    source_export_dict['mysql_time_field'] = mysql_time_field
-    return source_export_dict
+    section_list = cfg.sections()
+    config_dict = {}
+    for section in section_list:
+        section_item = cfg.items(section)
+        for item in section_item:
+            config_dict[item[0]] = item[1]
+    return config_dict
 
 
 # 目录路径不存在时自动创建
@@ -86,34 +44,38 @@ def source_export_data_main_job():
 
         # 获取任务开始时间
         start_time = time.time()
-        start_time_str = get_now_time()
+        start_time_str1, start_time_str2 = get_now_time()  # start_time_str1用来给文件夹命名，start_time_str2作为时间筛选条件
         logger.info("----------开始导出源数据----------")
 
         # 读取上次任务的同步时间（如果该时间为空字符串，则跑全量）
         last_job_time_dict = read_json_to_dict(last_job_time_path)
         last_job_time = last_job_time_dict['last_job_time']
 
-        # 创建数据存储目录
+        # 数据存储目录
+        original_data_base_path = str(source_export_dict['original_data_base_path'])
+        encrypt_data_base_path = str(source_export_dict['encrypt_data_base_path'])
+        data_package_base_path = str(source_export_dict['data_package_base_path'])
+        start_time_str = "init"
         if last_job_time != "":
-            original_data_path = base_path + "/" + str(source_export_dict['original_data_base_path']) + "/" + last_job_time + "--" + start_time_str
-            encrypt_data_path = base_path + "/" + str(source_export_dict['encrypt_data_base_path']) + "/" + last_job_time + "--" + start_time_str
-            data_package_path = base_path + "/" + str(source_export_dict['data_package_base_path']) + "/" + last_job_time + "--" + start_time_str + '.zip'
-        else:
-            original_data_path = base_path + "/" + str(source_export_dict['original_data_base_path']) + "/earliest--" + start_time_str
-            encrypt_data_path = base_path + "/" + str(source_export_dict['encrypt_data_base_path']) + "/earliest--" + start_time_str
-            data_package_path = base_path + "/" + str(source_export_dict['data_package_base_path']) + "/earliest--" + start_time_str + '.zip'
+            try:
+                start_time_str = datetime.strptime(last_job_time, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d-%H-%M-%S")
+            except Exception as e:
+                logger.error("格式化上次更新时间出错：{}".format(e))
+        original_data_path = "{}/{}/{}--{}".format(base_path, original_data_base_path, start_time_str, start_time_str1)
+        encrypt_data_path = "{}/{}/{}--{}".format(base_path, encrypt_data_base_path, start_time_str, start_time_str1)
+        data_package_path = "{}/{}/{}--{}.zip".format(base_path, data_package_base_path, start_time_str, start_time_str1)
 
         # 执行数据导出任务
         path_not_exist_auto_create(original_data_path, "已创建原始数据文件路径{}".format(original_data_path))
         es_is_open = source_export_dict['es_is_open']
         if es_is_open == "true":
             logger.info("---开始导出ES源数据")
-            export_es_data_main(source_export_dict, original_data_path, last_job_time, start_time_str)
+            export_es_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
             logger.info("---导出ES源数据已完成")
         mysql_is_open = source_export_dict['mysql_is_open']
         if mysql_is_open == "true":
             logger.info("---开始导出MySQL源数据")
-            export_mysql_data_main(source_export_dict, original_data_path, last_job_time, start_time_str)
+            export_mysql_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
             logger.info("---导出MySQL源数据已完成")
 
         # 加密数据
@@ -129,7 +91,7 @@ def source_export_data_main_job():
         logger.info("加密压缩后的数据包文件路径为{}".format(data_package_path))
 
         # 更新本次任务的时间
-        last_job_time_dict['last_job_time'] = start_time_str
+        last_job_time_dict['last_job_time'] = start_time_str2
         dict_to_json_file(last_job_time_dict, last_job_time_path)
 
         # 获取任务结束时间并统计耗时
@@ -138,7 +100,6 @@ def source_export_data_main_job():
         logger.info("----------导出源数据已完成，共耗时：{}----------".format(time_consuming_str))
 
         gol.set_value('is_running', False)
-
     else:
         logger.warn("当前存在正在执行中的数据导出任务，本次暂不执行")
 
@@ -151,7 +112,7 @@ if __name__ == '__main__':
     base_path = os.getcwd()
     logger.info("基础路径：{}".format(base_path))
 
-    config_path = base_path + '/config.ini'
+    config_path = '{}/config.ini'.format(base_path)
     logger.info("配置文件路径：{}".format(config_path))
     source_export_dict = {}
     try:
@@ -160,28 +121,28 @@ if __name__ == '__main__':
         logger.error("读取配置文件出错，程序已终止执行")
         sys.exit()
 
-    public_rsa_key_path = base_path + "/" + str(source_export_dict['public_rsa_key_path'])
+    public_rsa_key_path = "{}/{}".format(base_path, str(source_export_dict['public_rsa_key_path']))
     logger.info("RSA公钥文件路径：{}".format(public_rsa_key_path))
     if not os.path.exists(public_rsa_key_path):
         logger.error("RSA公钥文件不存在，程序已终止执行")
         sys.exit()
 
-    last_job_time_path = base_path + "/" + str(source_export_dict['last_job_time_path'])
+    last_job_time_path = "{}/{}".format(base_path, str(source_export_dict['last_job_time_path']))
     logger.info("上次任务同步时间记录文件路径：{}".format(last_job_time_path))
     if not os.path.exists(last_job_time_path):
         last_job_time_dict = {"last_job_time": ""}
         dict_to_json_file(last_job_time_dict, last_job_time_path)
         logger.info("上次任务同步时间记录文件不存在，已自动创建")
 
-    original_data_base_path = base_path + "/" + str(source_export_dict['original_data_base_path'])
+    original_data_base_path = "{}/{}".format(base_path, str(source_export_dict['original_data_base_path']))
     logger.info("原始数据文件根路径：{}".format(original_data_base_path))
     path_not_exist_auto_create(original_data_base_path, "原始数据文件根路径不存在，已自动创建")
 
-    encrypt_data_base_path = base_path + "/" + str(source_export_dict['encrypt_data_base_path'])
+    encrypt_data_base_path = "{}/{}".format(base_path, str(source_export_dict['encrypt_data_base_path']))
     logger.info("加密后的数据文件根路径：{}".format(encrypt_data_base_path))
     path_not_exist_auto_create(encrypt_data_base_path, "加密后的数据文件根路径不存在，已自动创建")
 
-    data_package_base_path = base_path + "/" + str(source_export_dict['data_package_base_path'])
+    data_package_base_path = "{}/{}".format(base_path, str(source_export_dict['data_package_base_path']))
     logger.info("加密压缩后的数据包文件根路径：{}".format(data_package_base_path))
     path_not_exist_auto_create(data_package_base_path, "加密压缩后的数据包文件路径根不存在，已自动创建")
 

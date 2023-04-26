@@ -52,11 +52,11 @@ def import_es_data_main(target_import_dict, original_data_path):
     es_timeout = int(target_import_dict['es_timeout'])
     es_step = int(target_import_dict['es_step'])
     es_connect = Elasticsearch(
-        hosts=[str(target_import_dict['es_host']) + ":" + str(target_import_dict['es_port'])],
+        hosts=["{}:{}".format(str(target_import_dict['es_host']),str(target_import_dict['es_port']))],
         http_auth=(str(target_import_dict['es_user']), str(target_import_dict['es_password'])),
         request_timeout=es_timeout
     )
-    json_path_list = glob.glob(original_data_path + '/*.json')
+    json_path_list = glob.glob('{}/*.json'.format(original_data_path))
     for json_path in json_path_list:
         file_dir, file_full_name = os.path.split(json_path)
         index_name, file_ext = os.path.splitext(file_full_name)

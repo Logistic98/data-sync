@@ -16,40 +16,40 @@ public_rsa_key_path = public_rsa_key.bin
 
 [SOURCE_ES]
 # 是否开启，取值true或false
-is_open = true
+es_is_open = true
 # IP地址
-host = 111.111.111.111
+es_host = 111.111.111.111
 # 端口号
-port = 9200
+es_port = 9200
 # 用户名
-user = your_es_user
+es_user = your_es_user
 # 密码
-password = your_es_password
+es_password = your_es_password
 # 连接超时时间（ms）
-timeout = 60
+es_timeout = 60
 # 滚动查询的超时时间，这里设置为10分钟
-scroll = 10m
+es_scroll = 10m
 # 单次查询的条数
-size = 1000
+es_size = 1000
 # 索引列表（多个之间用","分隔）
-index_list = index_1,index_2
+es_index_list = index_1,index_2
 # 基于时间的增量字段
-time_field = update_time
+es_time_field = update_time
 
 [SOURCE_MYSQL]
 # 是否开启，取值true或false
-is_open = true
+mysql_is_open = true
 # IP地址
-host = 111.111.111.111
+mysql_host = 111.111.111.111
 # 端口号
-port = 3306
+mysql_port = 3306
 # 用户名
-user = your_mysql_user
+mysql_user = your_mysql_user
 # 密码
-password = your_mysql_password
+mysql_password = your_mysql_password
 # 数据库
-db = your_mysql_db
+mysql_db = your_mysql_db
 # 数据表列表（多个之间用","分隔）
-table_list = table_1,table_2
+mysql_table_list = table_1,table_2
 # 基于时间的增量字段
-time_field = update_time
+mysql_time_field = update_time

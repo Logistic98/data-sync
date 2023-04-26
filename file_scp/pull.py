@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from configparser import RawConfigParser
+from configparser import ConfigParser
 import paramiko
 import logging
 
@@ -14,29 +14,20 @@ logging.basicConfig(filename='pull_file.log', level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 
+# 读取配置文件
 def read_config(config_path):
-    cfg = RawConfigParser()
+    cfg = ConfigParser()
     cfg.read(config_path, encoding='utf-8')
-    host_ip = cfg.get('PULL', 'host_ip')
-    host_port = cfg.get('PULL', 'host_port')
-    host_username = cfg.get('PULL', 'host_username')
-    host_password = cfg.get('PULL', 'host_password')
-    remote_path = cfg.get('PULL', 'remote_path')
-    local_path = cfg.get('PULL', 'local_path')
-    pull_file_key = cfg.get('PULL', 'pull_file_key')
-    pull_file_suffix = cfg.get('PULL', 'pull_file_suffix')
-    scp_config = {}
-    scp_config['host_ip'] = host_ip
-    scp_config['host_port'] = host_port
-    scp_config['host_username'] = host_username
-    scp_config['host_password'] = host_password
-    scp_config['remote_path'] = remote_path
-    scp_config['local_path'] = local_path
-    scp_config['pull_file_key'] = pull_file_key
-    scp_config['pull_file_suffix'] = pull_file_suffix
-    return scp_config
+    section_list = cfg.sections()
+    config_dict = {}
+    for section in section_list:
+        section_item = cfg.items(section)
+        for item in section_item:
+            config_dict[item[0]] = item[1]
+    return config_dict
 
 
+# 拉取文件
 def pull(host_ip, host_port, host_username, host_password, remote_path, local_path, pull_file_key, pull_file_suffix):
     scp = paramiko.Transport((host_ip, host_port))
     scp.connect(username=host_username, password=host_password)

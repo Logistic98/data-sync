@@ -18,46 +18,13 @@ from utils import dict_to_json_file, get_now_time, unzip_data_dir, decrypt_file,
 def read_config(config_path):
     cfg = ConfigParser()
     cfg.read(config_path, encoding='utf-8')
-    last_job_time_path = cfg.get('PATH', 'last_job_time_path')
-    original_data_base_path = cfg.get('PATH', 'original_data_base_path')
-    encrypt_data_base_path = cfg.get('PATH', 'encrypt_data_base_path')
-    data_package_base_path = cfg.get('PATH', 'data_package_base_path')
-    rsa_key = cfg.get('RSA', 'rsa_key')
-    private_rsa_key_path = cfg.get('RSA', 'private_rsa_key_path')
-    es_is_open = cfg.get('TARGET_ES', 'is_open')
-    es_host = cfg.get('TARGET_ES', 'host')
-    es_port = cfg.get('TARGET_ES', 'port')
-    es_user = cfg.get('TARGET_ES', 'user')
-    es_password = cfg.get('TARGET_ES', 'password')
-    es_timeout = cfg.get('TARGET_ES', 'timeout')
-    es_step = cfg.get('TARGET_ES', 'step')
-    mysql_is_open = cfg.get('TARGET_MYSQL', 'is_open')
-    mysql_host = cfg.get('TARGET_MYSQL', 'host')
-    mysql_port = cfg.get('TARGET_MYSQL', 'port')
-    mysql_user = cfg.get('TARGET_MYSQL', 'user')
-    mysql_password = cfg.get('TARGET_MYSQL', 'password')
-    mysql_db = cfg.get('TARGET_MYSQL', 'db')
-    target_import_dict = {}
-    target_import_dict['last_job_time_path'] = last_job_time_path
-    target_import_dict['original_data_base_path'] = original_data_base_path
-    target_import_dict['encrypt_data_base_path'] = encrypt_data_base_path
-    target_import_dict['data_package_base_path'] = data_package_base_path
-    target_import_dict['rsa_key'] = rsa_key
-    target_import_dict['private_rsa_key_path'] = private_rsa_key_path
-    target_import_dict['es_is_open'] = es_is_open
-    target_import_dict['es_host'] = es_host
-    target_import_dict['es_port'] = es_port
-    target_import_dict['es_user'] = es_user
-    target_import_dict['es_password'] = es_password
-    target_import_dict['es_timeout'] = es_timeout
-    target_import_dict['es_step'] = es_step
-    target_import_dict['mysql_is_open'] = mysql_is_open
-    target_import_dict['mysql_host'] = mysql_host
-    target_import_dict['mysql_port'] = mysql_port
-    target_import_dict['mysql_user'] = mysql_user
-    target_import_dict['mysql_password'] = mysql_password
-    target_import_dict['mysql_db'] = mysql_db
-    return target_import_dict
+    section_list = cfg.sections()
+    config_dict = {}
+    for section in section_list:
+        section_item = cfg.items(section)
+        for item in section_item:
+            config_dict[item[0]] = item[1]
+    return config_dict
 
 
 # 目录路径不存在时自动创建
@@ -79,16 +46,16 @@ def target_import_data_main_job():
         start_time_str = get_now_time()
         logger.info("----------开始导入源数据----------")
 
-        original_data_path = base_path + "/" + str(target_import_dict['original_data_base_path'])
-        encrypt_data_path = base_path + "/" + str(target_import_dict['encrypt_data_base_path'])
-        data_package_path = base_path + "/" + str(target_import_dict['data_package_base_path'])
+        original_data_path = "{}/{}".format(base_path, str(target_import_dict['original_data_base_path']))
+        encrypt_data_path = "{}/{}".format(base_path, str(target_import_dict['encrypt_data_base_path']))
+        data_package_path = "{}/{}".format(base_path, str(target_import_dict['data_package_base_path']))
 
         # 解压数据
         logger.info("加密压缩后的数据包文件路径为{}".format(data_package_path))
         logger.info("---开始解压所有数据")
         zip_file_list = read_dir_to_list(data_package_path)
         for zip_file in zip_file_list:
-            zip_file_path = data_package_path + "/" + zip_file
+            zip_file_path = "{}/{}".format(data_package_path, zip_file)
             unzip_data_dir(zip_file_path, encrypt_data_path)
             logger.info("已将{}文件解压".format(zip_file_path))
         logger.info("---解压所有数据已完成")
@@ -135,7 +102,7 @@ if __name__ == '__main__':
     base_path = os.getcwd()
     logger.info("基础路径：{}".format(base_path))
 
-    config_path = base_path + '/config.ini'
+    config_path = '{}/config.ini'.format(base_path)
     logger.info("配置文件路径：{}".format(config_path))
     target_import_dict = {}
     try:
@@ -144,29 +111,29 @@ if __name__ == '__main__':
         logger.error("读取配置文件出错，程序已终止执行")
         sys.exit()
 
-    private_rsa_key_path = base_path + "/" + str(target_import_dict['private_rsa_key_path'])
+    private_rsa_key_path = "{}/{}".format(base_path, str(target_import_dict['private_rsa_key_path']))
     logger.info("RSA私钥文件路径：{}".format(private_rsa_key_path))
     if not os.path.exists(private_rsa_key_path):
         logger.error("RSA私钥文件不存在，程序已终止执行")
         sys.exit()
     rsa_key = str(target_import_dict['rsa_key'])
 
-    last_job_time_path = base_path + "/" + str(target_import_dict['last_job_time_path'])
+    last_job_time_path = "{}/{}".format(base_path, str(target_import_dict['last_job_time_path']))
     logger.info("上次任务同步时间记录文件路径：{}".format(last_job_time_path))
     if not os.path.exists(last_job_time_path):
         last_job_time_dict = {"last_job_time": ""}
         dict_to_json_file(last_job_time_dict, last_job_time_path)
         logger.info("上次任务同步时间记录文件不存在，已自动创建")
 
-    original_data_base_path = base_path + "/" + str(target_import_dict['original_data_base_path'])
+    original_data_base_path = "{}/{}".format(base_path, str(target_import_dict['original_data_base_path']))
     logger.info("原始数据文件根路径：{}".format(original_data_base_path))
     path_not_exist_auto_create(original_data_base_path, "原始数据文件根路径不存在，已自动创建")
 
-    encrypt_data_base_path = base_path + "/" + str(target_import_dict['encrypt_data_base_path'])
+    encrypt_data_base_path = "{}/{}".format(base_path, str(target_import_dict['encrypt_data_base_path']))
     logger.info("加密后的数据文件根路径：{}".format(encrypt_data_base_path))
     path_not_exist_auto_create(encrypt_data_base_path, "加密后的数据文件根路径不存在，已自动创建")
 
-    data_package_base_path = base_path + "/" + str(target_import_dict['data_package_base_path'])
+    data_package_base_path = "{}/{}".format(base_path, str(target_import_dict['data_package_base_path']))
     logger.info("加密压缩后的数据包文件根路径：{}".format(data_package_base_path))
     path_not_exist_auto_create(data_package_base_path, "加密压缩后的数据包文件路径根不存在，已自动创建")
 

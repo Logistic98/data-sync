@@ -61,7 +61,7 @@ def import_mysql_data_main(target_import_dict, original_data_path):
     mysql_connect = pymysql.connect(host=str(target_import_dict['mysql_host']), user=str(target_import_dict['mysql_user']),
                             password=str(target_import_dict['mysql_password']), port=int(target_import_dict['mysql_port']),
                             db=str(target_import_dict['mysql_db']), charset='utf8')
-    txt_path_list = glob.glob(original_data_path + '/*.txt')
+    txt_path_list = glob.glob('{}/*.txt'.format(original_data_path))
     for txt_path in txt_path_list:
         file_dir, file_full_name = os.path.split(txt_path)
         table_name, file_ext = os.path.splitext(file_full_name)
