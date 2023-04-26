@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # 读取配置文件
     base_path = os.getcwd()
-    config_path = base_path + '/config.ini'
+    config_path = '{}/config.ini'.format(base_path)
     source_export_dict = read_config(config_path)
 
     # 递归删除数据目录

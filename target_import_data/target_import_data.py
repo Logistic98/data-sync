@@ -46,16 +46,16 @@ def target_import_data_main_job():
         start_time_str = get_now_time()
         logger.info("----------开始导入源数据----------")
 
-        original_data_path = base_path + "/" + str(target_import_dict['original_data_base_path'])
-        encrypt_data_path = base_path + "/" + str(target_import_dict['encrypt_data_base_path'])
-        data_package_path = base_path + "/" + str(target_import_dict['data_package_base_path'])
+        original_data_path = "{}/{}".format(base_path, str(target_import_dict['original_data_base_path']))
+        encrypt_data_path = "{}/{}".format(base_path, str(target_import_dict['encrypt_data_base_path']))
+        data_package_path = "{}/{}".format(base_path, str(target_import_dict['data_package_base_path']))
 
         # 解压数据
         logger.info("加密压缩后的数据包文件路径为{}".format(data_package_path))
         logger.info("---开始解压所有数据")
         zip_file_list = read_dir_to_list(data_package_path)
         for zip_file in zip_file_list:
-            zip_file_path = data_package_path + "/" + zip_file
+            zip_file_path = "{}/{}".format(data_package_path, zip_file)
             unzip_data_dir(zip_file_path, encrypt_data_path)
             logger.info("已将{}文件解压".format(zip_file_path))
         logger.info("---解压所有数据已完成")
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     base_path = os.getcwd()
     logger.info("基础路径：{}".format(base_path))
 
-    config_path = base_path + '/config.ini'
+    config_path = '{}/config.ini'.format(base_path)
     logger.info("配置文件路径：{}".format(config_path))
     target_import_dict = {}
     try:
@@ -111,29 +111,29 @@ if __name__ == '__main__':
         logger.error("读取配置文件出错，程序已终止执行")
         sys.exit()
 
-    private_rsa_key_path = base_path + "/" + str(target_import_dict['private_rsa_key_path'])
+    private_rsa_key_path = "{}/{}".format(base_path, str(target_import_dict['private_rsa_key_path']))
     logger.info("RSA私钥文件路径：{}".format(private_rsa_key_path))
     if not os.path.exists(private_rsa_key_path):
         logger.error("RSA私钥文件不存在，程序已终止执行")
         sys.exit()
     rsa_key = str(target_import_dict['rsa_key'])
 
-    last_job_time_path = base_path + "/" + str(target_import_dict['last_job_time_path'])
+    last_job_time_path = "{}/{}".format(base_path, str(target_import_dict['last_job_time_path']))
     logger.info("上次任务同步时间记录文件路径：{}".format(last_job_time_path))
     if not os.path.exists(last_job_time_path):
         last_job_time_dict = {"last_job_time": ""}
         dict_to_json_file(last_job_time_dict, last_job_time_path)
         logger.info("上次任务同步时间记录文件不存在，已自动创建")
 
-    original_data_base_path = base_path + "/" + str(target_import_dict['original_data_base_path'])
+    original_data_base_path = "{}/{}".format(base_path, str(target_import_dict['original_data_base_path']))
     logger.info("原始数据文件根路径：{}".format(original_data_base_path))
     path_not_exist_auto_create(original_data_base_path, "原始数据文件根路径不存在，已自动创建")
 
-    encrypt_data_base_path = base_path + "/" + str(target_import_dict['encrypt_data_base_path'])
+    encrypt_data_base_path = "{}/{}".format(base_path, str(target_import_dict['encrypt_data_base_path']))
     logger.info("加密后的数据文件根路径：{}".format(encrypt_data_base_path))
     path_not_exist_auto_create(encrypt_data_base_path, "加密后的数据文件根路径不存在，已自动创建")
 
-    data_package_base_path = base_path + "/" + str(target_import_dict['data_package_base_path'])
+    data_package_base_path = "{}/{}".format(base_path, str(target_import_dict['data_package_base_path']))
     logger.info("加密压缩后的数据包文件根路径：{}".format(data_package_base_path))
     path_not_exist_auto_create(data_package_base_path, "加密压缩后的数据包文件路径根不存在，已自动创建")
 

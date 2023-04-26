@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from datetime import datetime
 from decimal import Decimal
 from configparser import ConfigParser
 import schedule
@@ -43,34 +44,38 @@ def source_export_data_main_job():
 
         # 获取任务开始时间
         start_time = time.time()
-        start_time_str = get_now_time()
+        start_time_str1, start_time_str2 = get_now_time()  # start_time_str1用来给文件夹命名，start_time_str2作为时间筛选条件
         logger.info("----------开始导出源数据----------")
 
         # 读取上次任务的同步时间（如果该时间为空字符串，则跑全量）
         last_job_time_dict = read_json_to_dict(last_job_time_path)
         last_job_time = last_job_time_dict['last_job_time']
 
-        # 创建数据存储目录
+        # 数据存储目录
+        original_data_base_path = str(source_export_dict['original_data_base_path'])
+        encrypt_data_base_path = str(source_export_dict['encrypt_data_base_path'])
+        data_package_base_path = str(source_export_dict['data_package_base_path'])
+        start_time_str = "init"
         if last_job_time != "":
-            original_data_path = base_path + "/" + str(source_export_dict['original_data_base_path']) + "/" + last_job_time + "--" + start_time_str
-            encrypt_data_path = base_path + "/" + str(source_export_dict['encrypt_data_base_path']) + "/" + last_job_time + "--" + start_time_str
-            data_package_path = base_path + "/" + str(source_export_dict['data_package_base_path']) + "/" + last_job_time + "--" + start_time_str + '.zip'
-        else:
-            original_data_path = base_path + "/" + str(source_export_dict['original_data_base_path']) + "/earliest--" + start_time_str
-            encrypt_data_path = base_path + "/" + str(source_export_dict['encrypt_data_base_path']) + "/earliest--" + start_time_str
-            data_package_path = base_path + "/" + str(source_export_dict['data_package_base_path']) + "/earliest--" + start_time_str + '.zip'
+            try:
+                start_time_str = datetime.strptime(last_job_time, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d-%H-%M-%S")
+            except Exception as e:
+                logger.error("格式化上次更新时间出错：{}".format(e))
+        original_data_path = "{}/{}/{}--{}".format(base_path, original_data_base_path, start_time_str, start_time_str1)
+        encrypt_data_path = "{}/{}/{}--{}".format(base_path, encrypt_data_base_path, start_time_str, start_time_str1)
+        data_package_path = "{}/{}/{}--{}.zip".format(base_path, data_package_base_path, start_time_str, start_time_str1)
 
         # 执行数据导出任务
         path_not_exist_auto_create(original_data_path, "已创建原始数据文件路径{}".format(original_data_path))
         es_is_open = source_export_dict['es_is_open']
         if es_is_open == "true":
             logger.info("---开始导出ES源数据")
-            export_es_data_main(source_export_dict, original_data_path, last_job_time, start_time_str)
+            export_es_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
             logger.info("---导出ES源数据已完成")
         mysql_is_open = source_export_dict['mysql_is_open']
         if mysql_is_open == "true":
             logger.info("---开始导出MySQL源数据")
-            export_mysql_data_main(source_export_dict, original_data_path, last_job_time, start_time_str)
+            export_mysql_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
             logger.info("---导出MySQL源数据已完成")
 
         # 加密数据
@@ -86,7 +91,7 @@ def source_export_data_main_job():
         logger.info("加密压缩后的数据包文件路径为{}".format(data_package_path))
 
         # 更新本次任务的时间
-        last_job_time_dict['last_job_time'] = start_time_str
+        last_job_time_dict['last_job_time'] = start_time_str2
         dict_to_json_file(last_job_time_dict, last_job_time_path)
 
         # 获取任务结束时间并统计耗时
@@ -95,7 +100,6 @@ def source_export_data_main_job():
         logger.info("----------导出源数据已完成，共耗时：{}----------".format(time_consuming_str))
 
         gol.set_value('is_running', False)
-
     else:
         logger.warn("当前存在正在执行中的数据导出任务，本次暂不执行")
 
@@ -108,7 +112,7 @@ if __name__ == '__main__':
     base_path = os.getcwd()
     logger.info("基础路径：{}".format(base_path))
 
-    config_path = base_path + '/config.ini'
+    config_path = '{}/config.ini'.format(base_path)
     logger.info("配置文件路径：{}".format(config_path))
     source_export_dict = {}
     try:
@@ -117,28 +121,28 @@ if __name__ == '__main__':
         logger.error("读取配置文件出错，程序已终止执行")
         sys.exit()
 
-    public_rsa_key_path = base_path + "/" + str(source_export_dict['public_rsa_key_path'])
+    public_rsa_key_path = "{}/{}".format(base_path, str(source_export_dict['public_rsa_key_path']))
     logger.info("RSA公钥文件路径：{}".format(public_rsa_key_path))
     if not os.path.exists(public_rsa_key_path):
         logger.error("RSA公钥文件不存在，程序已终止执行")
         sys.exit()
 
-    last_job_time_path = base_path + "/" + str(source_export_dict['last_job_time_path'])
+    last_job_time_path = "{}/{}".format(base_path, str(source_export_dict['last_job_time_path']))
     logger.info("上次任务同步时间记录文件路径：{}".format(last_job_time_path))
     if not os.path.exists(last_job_time_path):
         last_job_time_dict = {"last_job_time": ""}
         dict_to_json_file(last_job_time_dict, last_job_time_path)
         logger.info("上次任务同步时间记录文件不存在，已自动创建")
 
-    original_data_base_path = base_path + "/" + str(source_export_dict['original_data_base_path'])
+    original_data_base_path = "{}/{}".format(base_path, str(source_export_dict['original_data_base_path']))
     logger.info("原始数据文件根路径：{}".format(original_data_base_path))
     path_not_exist_auto_create(original_data_base_path, "原始数据文件根路径不存在，已自动创建")
 
-    encrypt_data_base_path = base_path + "/" + str(source_export_dict['encrypt_data_base_path'])
+    encrypt_data_base_path = "{}/{}".format(base_path, str(source_export_dict['encrypt_data_base_path']))
     logger.info("加密后的数据文件根路径：{}".format(encrypt_data_base_path))
     path_not_exist_auto_create(encrypt_data_base_path, "加密后的数据文件根路径不存在，已自动创建")
 
-    data_package_base_path = base_path + "/" + str(source_export_dict['data_package_base_path'])
+    data_package_base_path = "{}/{}".format(base_path, str(source_export_dict['data_package_base_path']))
     logger.info("加密压缩后的数据包文件根路径：{}".format(data_package_base_path))
     path_not_exist_auto_create(data_package_base_path, "加密压缩后的数据包文件路径根不存在，已自动创建")
 
