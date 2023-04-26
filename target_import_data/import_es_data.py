@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import glob
 from elasticsearch import Elasticsearch, helpers
 
 from log import logger
-        
+from utils import find_file_by_suffix
+
 
 # 读取json文件并批量写入ES（不存在则插入，存在则更新）
 def read_json_batch_import_es(es_connect, json_path, index_name, es_timeout, es_step):
@@ -44,7 +44,7 @@ def read_json_batch_import_es(es_connect, json_path, index_name, es_timeout, es_
                     }
                     actions.append(action)
                 helpers.bulk(es_connect, actions, request_timeout=es_timeout)
-        logger.info("{}索引插入了{}条数据".format(str(index_name), str(length)))
+        logger.info("{}数据文件：{}索引插入了{}条数据".format(json_path, str(index_name), str(length)))
 
 
 # 将json数据文件导入到ES--调用入口
@@ -56,7 +56,7 @@ def import_es_data_main(target_import_dict, original_data_path):
         http_auth=(str(target_import_dict['es_user']), str(target_import_dict['es_password'])),
         request_timeout=es_timeout
     )
-    json_path_list = glob.glob('{}/*.json'.format(original_data_path))
+    json_path_list = find_file_by_suffix(original_data_path, "*.json")
     for json_path in json_path_list:
         file_dir, file_full_name = os.path.split(json_path)
         index_name, file_ext = os.path.splitext(file_full_name)
