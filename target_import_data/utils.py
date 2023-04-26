@@ -4,6 +4,7 @@ import json
 import os
 import time
 import zipfile
+import fnmatch
 
 from Crypto.Cipher import PKCS1_OAEP, AES
 from Crypto.PublicKey import RSA
@@ -64,3 +65,15 @@ def decrypt_file(original_data_path, encrypt_data_path, private_rsa_key_path, rs
         with open(original_data_file_path, 'wb') as f_out:
             f_out.write(data)
         os.remove(encrypt_data_file_path)  # 解密完之后删除加密文件
+
+
+# 级联遍历目录，获取目录下的所有指定后缀的文件（suffix需要带上通配符，如*.py)
+def find_file_by_suffix(dir, suffix):
+    fileList = []
+    for root, dirs, files in os.walk(dir):
+        for name in files:
+            filepath = os.path.join(root, name)
+            if os.path.exists(filepath):
+                fileList.append(filepath)
+    result = fnmatch.filter(fileList, suffix)
+    return result

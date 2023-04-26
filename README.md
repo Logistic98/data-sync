@@ -22,6 +22,7 @@
 ├── source_export_data               
 │   ├── clear_data_tool.py
 │   ├── config.ini.example
+│   ├── last_job_time.json
 │   ├── export_es_data.py
 │   ├── export_mysql_data.py
 │   ├── gol.py
@@ -31,6 +32,7 @@
 └── target_import_data               
     ├── clear_data_tool.py
     ├── config.ini.example
+    ├── last_job_time.json
     ├── gol.py
     ├── import_es_data.py
     ├── import_mysql_data.py
@@ -67,7 +69,7 @@ Step4：导出及导入数据
 
 [2] ES的依赖版本尽量与服务端相近，我这里使用的是7.16.2版本的elasticsearch依赖，在7.16.2和8.4.1版本的服务端ES上测试无问题。
 
-[3] 支持基于时间的全量导出与增量导出，每次执行时会读取上次的同步时间，若这个值为空，则跑全量数据（这里的全量是指在当前时间之前的所有数据，若时间标志位有在当前时间之后的，则不会导出）。使用的基于时间的增量字段，在配置文件的 time_field 项进行配置。
+[3] 支持基于时间的全量导出与增量导出，每次执行时会读取上次的同步时间，若这个值为"init"，则跑全量数据（这里的全量是指在当前时间之前的所有数据，若时间标志位有在当前时间之后的，则不会导出）。使用的基于时间的增量字段，在配置文件的 time_field 项进行配置。需要注意的是，日期字段格式只支持`%Y-%m-%d %H:%M:%S`，若不是此格式，需要在代码里转换一下。
 
 [4] 本项目采用 schedule 库配置定时任务，在 `source_export_data/source_export_data.py`、`target_import_data/target_import_data.py`文件里配置即可，支持配置多个定时任务规则。代码里加了运行状态限制，若上一次没执行完，本次会跳过。
 

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import glob
 import os
 import pymysql
 import datetime
 import json
 
 from log import logger
+from utils import find_file_by_suffix
 
 
 # 重写json函数，将datetime.datetime类型的数据转化
@@ -28,6 +28,7 @@ def read_txt_batch_import_mysql(mysql_connect, txt_path, table_name):
 
         # 构建查询列名
         if len(txt_list) == 0:
+            logger.info("{}数据文件：{}表暂无新数据，本次不插入".format(txt_path, str(table_name)))
             return None
         else:
             columns = ', '.join(txt_list[0].keys())
@@ -53,7 +54,7 @@ def read_txt_batch_import_mysql(mysql_connect, txt_path, table_name):
             logger.error(e)
         cursor.close()
 
-        logger.info("{}表插入了{}条数据".format(str(table_name), str(len(values_list))))
+        logger.info("{}数据文件：{}表插入了{}条数据".format(txt_path, str(table_name), str(len(values_list))))
 
 
 # 将txt数据文件导入到MySQL--调用入口
@@ -61,7 +62,7 @@ def import_mysql_data_main(target_import_dict, original_data_path):
     mysql_connect = pymysql.connect(host=str(target_import_dict['mysql_host']), user=str(target_import_dict['mysql_user']),
                             password=str(target_import_dict['mysql_password']), port=int(target_import_dict['mysql_port']),
                             db=str(target_import_dict['mysql_db']), charset='utf8')
-    txt_path_list = glob.glob('{}/*.txt'.format(original_data_path))
+    txt_path_list = find_file_by_suffix(original_data_path, "*.txt")
     for txt_path in txt_path_list:
         file_dir, file_full_name = os.path.split(txt_path)
         table_name, file_ext = os.path.splitext(file_full_name)

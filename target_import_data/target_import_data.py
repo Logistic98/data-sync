@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shutil
 import sys
 import time
 from decimal import Decimal
@@ -34,6 +35,13 @@ def path_not_exist_auto_create(file_path, logger_info):
         logger.info(logger_info)
 
 
+# 使用完毕后递归删除目录
+def use_after_rmtree(rmtree_path, logger_info):
+    if os.path.exists(rmtree_path):
+        shutil.rmtree(rmtree_path)
+        logger.info(logger_info)
+
+
 # 导入数据主任务
 def target_import_data_main_job():
 
@@ -46,37 +54,53 @@ def target_import_data_main_job():
         start_time_str = get_now_time()
         logger.info("----------开始导入源数据----------")
 
-        original_data_path = "{}/{}".format(base_path, str(target_import_dict['original_data_base_path']))
-        encrypt_data_path = "{}/{}".format(base_path, str(target_import_dict['encrypt_data_base_path']))
-        data_package_path = "{}/{}".format(base_path, str(target_import_dict['data_package_base_path']))
+        original_data_base_path = "{}/{}".format(base_path, str(target_import_dict['original_data_base_path']))
+        encrypt_data_base_path = "{}/{}".format(base_path, str(target_import_dict['encrypt_data_base_path']))
+        data_package_base_path = "{}/{}".format(base_path, str(target_import_dict['data_package_base_path']))
 
         # 解压数据
-        logger.info("加密压缩后的数据包文件路径为{}".format(data_package_path))
+        logger.info("加密压缩后的数据包文件路径为{}".format(data_package_base_path))
         logger.info("---开始解压所有数据")
-        zip_file_list = read_dir_to_list(data_package_path)
+        zip_file_list = read_dir_to_list(data_package_base_path)
+        encrypt_data_path_list = []
         for zip_file in zip_file_list:
-            zip_file_path = "{}/{}".format(data_package_path, zip_file)
+            zip_name, zip_ext = os.path.splitext(zip_file)
+            zip_file_path = "{}/{}".format(data_package_base_path, zip_file)
+            encrypt_data_path = "{}/{}".format(encrypt_data_base_path, zip_name)
+            path_not_exist_auto_create(zip_file_path, "给{}压缩文件自动创建解压目录{}".format(zip_file_path, encrypt_data_path))
+            encrypt_data_path_list.append(encrypt_data_path)
             unzip_data_dir(zip_file_path, encrypt_data_path)
             logger.info("已将{}文件解压".format(zip_file_path))
         logger.info("---解压所有数据已完成")
-        logger.info("解压后的文件路径为{}".format(encrypt_data_path))
+        logger.info("解压后的文件根路径为{}".format(encrypt_data_base_path))
 
         # 解密数据
         logger.info("---开始解密所有数据文件")
-        decrypt_file(original_data_path, encrypt_data_path, private_rsa_key_path, rsa_key)
+        original_data_path_list = []
+        for encrypt_data_path in encrypt_data_path_list:
+            original_data_path = "{}/{}".format(original_data_base_path, encrypt_data_path.split("/")[-1])
+            path_not_exist_auto_create(original_data_path, "给{}加密目录自动创建解密目录{}".format(encrypt_data_path, original_data_path))
+            original_data_path_list.append(original_data_path)
+            decrypt_file(original_data_path, encrypt_data_path, private_rsa_key_path, rsa_key)
+            use_after_rmtree(encrypt_data_path, "{}目录数据解密后递归删除".format(encrypt_data_path))
         logger.info("---解密所有数据文件已完成")
 
         # 导入数据
         es_is_open = target_import_dict['es_is_open']
-        if es_is_open == "true":
-            logger.info("---开始导入ES源数据")
-            import_es_data_main(target_import_dict, original_data_path)
-            logger.info("---导入ES源数据已完成")
         mysql_is_open = target_import_dict['mysql_is_open']
-        if mysql_is_open == "true":
-            logger.info("---开始导入MySQL源数据")
-            import_mysql_data_main(target_import_dict, original_data_path)
-            logger.info("---导入MySQL源数据已完成")
+        for original_data_path in original_data_path_list:
+            logger.info("---正在导入{}路径的数据文件".format(original_data_path))
+            if es_is_open == "true":
+                logger.info("开始导入ES源数据")
+                import_es_data_main(target_import_dict, original_data_path)
+                logger.info("导入ES源数据已完成")
+            if mysql_is_open == "true":
+                logger.info("开始导入MySQL源数据")
+                import_mysql_data_main(target_import_dict, original_data_path)
+                logger.info("导入MySQL源数据已完成")
+            logger.info("---导入{}路径的数据文件已完成".format(original_data_path))
+            use_after_rmtree(original_data_path, "{}目录数据导入后递归删除".format(original_data_path))
+
 
         # 更新本次任务的时间
         last_job_time_dict = {}
