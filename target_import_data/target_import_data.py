@@ -69,7 +69,10 @@ def target_import_data_main_job():
             encrypt_data_path = "{}/{}".format(encrypt_data_base_path, zip_name)
             path_not_exist_auto_create(zip_file_path, "给{}压缩文件自动创建解压目录{}".format(zip_file_path, encrypt_data_path))
             encrypt_data_path_list.append(encrypt_data_path)
-            unzip_data_dir(zip_file_path, encrypt_data_path)
+            try:
+                unzip_data_dir(zip_file_path, encrypt_data_path)
+            except Exception as e:
+                logger.error("{}解压数据出错：{}".format(zip_file, e))
             logger.info("已将{}文件解压".format(zip_file_path))
         logger.info("---解压所有数据已完成")
         logger.info("解压后的文件根路径为{}".format(encrypt_data_base_path))
@@ -81,7 +84,10 @@ def target_import_data_main_job():
             original_data_path = "{}/{}".format(original_data_base_path, encrypt_data_path.split("/")[-1])
             path_not_exist_auto_create(original_data_path, "给{}加密目录自动创建解密目录{}".format(encrypt_data_path, original_data_path))
             original_data_path_list.append(original_data_path)
-            decrypt_file(original_data_path, encrypt_data_path, private_rsa_key_path, rsa_key)
+            try:
+                decrypt_file(original_data_path, encrypt_data_path, private_rsa_key_path, rsa_key)
+            except Exception as e:
+                logger.error("{}解密数据出错：{}".format(encrypt_data_path, e))
             use_after_rmtree(encrypt_data_path, "{}目录数据解密后递归删除".format(encrypt_data_path))
         logger.info("---解密所有数据文件已完成")
 
@@ -92,20 +98,29 @@ def target_import_data_main_job():
             logger.info("---正在导入{}路径的数据文件".format(original_data_path))
             if es_is_open == "true":
                 logger.info("开始导入ES源数据")
-                import_es_data_main(target_import_dict, original_data_path)
+                try:
+                    import_es_data_main(target_import_dict, original_data_path)
+                except Exception as e:
+                    logger.error("{}路径导入ES源数据出错：{}".format(original_data_path, e))
                 logger.info("导入ES源数据已完成")
             if mysql_is_open == "true":
                 logger.info("开始导入MySQL源数据")
-                import_mysql_data_main(target_import_dict, original_data_path)
+                try:
+                    import_mysql_data_main(target_import_dict, original_data_path)
+                except Exception as e:
+                    logger.error("{}路径导入MySQL源数据出错：{}".format(original_data_path, e))
                 logger.info("导入MySQL源数据已完成")
             logger.info("---导入{}路径的数据文件已完成".format(original_data_path))
             use_after_rmtree(original_data_path, "{}目录数据导入后递归删除".format(original_data_path))
 
-
         # 更新本次任务的时间
-        last_job_time_dict = {}
-        last_job_time_dict['last_job_time'] = start_time_str
-        dict_to_json_file(last_job_time_dict, last_job_time_path)
+        try:
+            last_job_time_dict = {}
+            last_job_time_dict['last_job_time'] = start_time_str
+            dict_to_json_file(last_job_time_dict, last_job_time_path)
+            logger.info("更新本次任务的时间{}写入文件{}".format(start_time_str, last_job_time_path))
+        except Exception as e:
+            logger.error("更新本次任务的时间写入文件出错：{}".format(e))
 
         # 获取任务结束时间并统计耗时
         end_time = time.time()

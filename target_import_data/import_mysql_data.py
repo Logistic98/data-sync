@@ -45,13 +45,10 @@ def read_txt_batch_import_mysql(mysql_connect, txt_path, table_name):
 
         # 批量插入数据
         cursor = mysql_connect.cursor()
-        try:
-            # 使用replace代替insert，实现"存在则更新，不存在则插入"的需求
-            qry = "replace into " + table_name + " (%s) values (%s);" % (columns, qmarks)
-            cursor.executemany(qry, values_list)
-            mysql_connect.commit()
-        except Exception as e:
-            logger.error(e)
+        # 使用replace代替insert，实现"存在则更新，不存在则插入"的需求
+        qry = "replace into " + table_name + " (%s) values (%s);" % (columns, qmarks)
+        cursor.executemany(qry, values_list)
+        mysql_connect.commit()
         cursor.close()
 
         logger.info("{}数据文件：{}表插入了{}条数据".format(txt_path, str(table_name), str(len(values_list))))

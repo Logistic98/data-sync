@@ -37,34 +37,32 @@ def es_export_json(es_connect, es_size, es_scroll, index_list, original_data_pat
                 }
             }
             logger.info("全量导出，时间范围为{}之前".format(now_time))
-        try:
-            source_list = []
-            # 滚动查询符合条件的所有es数据
-            page = es_connect.search(index=i, query=query, size=es_size, scroll=es_scroll)
+
+        source_list = []
+        # 滚动查询符合条件的所有es数据
+        page = es_connect.search(index=i, query=query, size=es_size, scroll=es_scroll)
+        for hit in page['hits']['hits']:
+            source_data = hit['_source']
+            source_data['_id'] = hit['_id']
+            source_list.append(source_data)
+        # 游标用于输出es查询出的所有结果
+        sid = page['_scroll_id']
+        # es查询出的结果总量
+        scroll_size = page['hits']['total']['value']
+        while (scroll_size > 0):
+            page = es_connect.scroll(scroll_id=sid, scroll=es_scroll)
+            sid = page['_scroll_id']
+            scroll_size = len(page['hits']['hits'])
             for hit in page['hits']['hits']:
                 source_data = hit['_source']
                 source_data['_id'] = hit['_id']
                 source_list.append(source_data)
-            # 游标用于输出es查询出的所有结果
-            sid = page['_scroll_id']
-            # es查询出的结果总量
-            scroll_size = page['hits']['total']['value']
-            while (scroll_size > 0):
-                page = es_connect.scroll(scroll_id=sid, scroll=es_scroll)
-                sid = page['_scroll_id']
-                scroll_size = len(page['hits']['hits'])
-                for hit in page['hits']['hits']:
-                    source_data = hit['_source']
-                    source_data['_id'] = hit['_id']
-                    source_list.append(source_data)
-            json_file_path = "{}/{}.json".format(original_data_path, str(i))
-            if len(source_list) != 0:
-                write_list_to_json(source_list, json_file_path)
-                logger.info('{}索引的数据已保存至{}路径，导出的数据总量为{}'.format(str(i), json_file_path, str(len(source_list))))
-            else:
-                logger.info('{}索引无更新'.format(str(i)))
-        except Exception as e:
-            logger.error("ES索引数据导出至JSON文件的过程出错：{}".format(e))
+        json_file_path = "{}/{}.json".format(original_data_path, str(i))
+        if len(source_list) != 0:
+            write_list_to_json(source_list, json_file_path)
+            logger.info('{}索引的数据已保存至{}路径，导出的数据总量为{}'.format(str(i), json_file_path, str(len(source_list))))
+        else:
+            logger.info('{}索引无更新'.format(str(i)))
 
 
 # 将符合条件的ES数据查出保存为json--调用入口

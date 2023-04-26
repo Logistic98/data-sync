@@ -48,8 +48,13 @@ def source_export_data_main_job():
         logger.info("----------开始导出源数据----------")
 
         # 读取上次任务的同步时间（如果该时间为空字符串，则跑全量）
-        last_job_time_dict = read_json_to_dict(last_job_time_path)
-        last_job_time = last_job_time_dict['last_job_time']
+        last_job_time = ""
+        last_job_time_dict = {}
+        try:
+            last_job_time_dict = read_json_to_dict(last_job_time_path)
+            last_job_time = last_job_time_dict['last_job_time']
+        except Exception as e:
+            logger.error("读取上次同步时间文件出错：{}".format(e))
 
         # 数据存储目录
         original_data_base_path = str(source_export_dict['original_data_base_path'])
@@ -70,29 +75,45 @@ def source_export_data_main_job():
         es_is_open = source_export_dict['es_is_open']
         if es_is_open == "true":
             logger.info("---开始导出ES源数据")
-            export_es_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
+            try:
+                export_es_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
+            except Exception as e:
+                logger.error("导出ES源数据出错：{}".format(e))
             logger.info("---导出ES源数据已完成")
         mysql_is_open = source_export_dict['mysql_is_open']
         if mysql_is_open == "true":
             logger.info("---开始导出MySQL源数据")
-            export_mysql_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
+            try:
+                export_mysql_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
+            except Exception as e:
+                logger.error("导出MySQL源数据出错：{}".format(e))
             logger.info("---导出MySQL源数据已完成")
 
         # 加密数据
         path_not_exist_auto_create(encrypt_data_path, "已创建加密数据文件路径{}".format(original_data_path))
         logger.info("---开始加密所有源数据")
-        encrypt_data_file(original_data_path, encrypt_data_path, public_rsa_key_path)
+        try:
+            encrypt_data_file(original_data_path, encrypt_data_path, public_rsa_key_path)
+        except Exception as e:
+            logger.error("加密数据出错：{}".format(e))
         logger.info("---加密所有源数据已完成")
 
         # 压缩数据
         logger.info("---开始压缩所有加密后的数据")
-        zip_data_dir(encrypt_data_path, data_package_path)
+        try:
+            zip_data_dir(encrypt_data_path, data_package_path)
+        except Exception as e:
+            logger.error("压缩数据出错：{}".format(e))
         logger.info("---压缩所有加密后的数据已完成")
         logger.info("加密压缩后的数据包文件路径为{}".format(data_package_path))
 
         # 更新本次任务的时间
-        last_job_time_dict['last_job_time'] = start_time_str2
-        dict_to_json_file(last_job_time_dict, last_job_time_path)
+        try:
+            last_job_time_dict['last_job_time'] = start_time_str2
+            dict_to_json_file(last_job_time_dict, last_job_time_path)
+            logger.info("更新本次任务的时间{}写入文件{}".format(start_time_str2, last_job_time_path))
+        except Exception as e:
+            logger.error("更新本次任务的时间写入文件出错：{}".format(e))
 
         # 获取任务结束时间并统计耗时
         end_time = time.time()

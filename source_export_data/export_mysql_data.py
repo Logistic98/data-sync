@@ -14,15 +14,12 @@ def mysql_export_txt(mysql_connect, table_list, original_data_path, last_job_tim
         else:
             sql = "SELECT * FROM {} where {} <= '{}' and {} > '{}'".format(table_name, mysql_time_field, str(now_time), mysql_time_field, str(last_job_time))
         logger.info("执行的sql语句为{}".format(sql))
-        try:
-            cursor = mysql_connect.cursor()
-            cursor.execute(sql)
-            desc = cursor.description  # 获取字段的描述
-            result = [dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()]   # 以字典的形式返回数据
-            for row in result:
-                data_list.append(row)
-        except Exception as e:
-            logger.error("MySQL表数据导出至txt文件的过程出错：{}".format(e))
+        cursor = mysql_connect.cursor()
+        cursor.execute(sql)
+        desc = cursor.description  # 获取字段的描述
+        result = [dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()]   # 以字典的形式返回数据
+        for row in result:
+            data_list.append(row)
         txt_path = "{}/{}.txt".format(original_data_path, table_name)
         with open(txt_path, "w+", encoding='utf-8') as f:
             f.write(str(data_list))
