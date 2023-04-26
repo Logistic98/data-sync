@@ -74,38 +74,38 @@ def source_export_data_main_job():
         path_not_exist_auto_create(original_data_path, "已创建原始数据文件路径{}".format(original_data_path))
         es_is_open = source_export_dict['es_is_open']
         if es_is_open == "true":
-            logger.info("---开始导出ES源数据")
             try:
+                logger.info("---开始导出ES源数据")
                 export_es_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
+                logger.info("---导出ES源数据已完成")
             except Exception as e:
                 logger.error("导出ES源数据出错：{}".format(e))
-            logger.info("---导出ES源数据已完成")
         mysql_is_open = source_export_dict['mysql_is_open']
         if mysql_is_open == "true":
-            logger.info("---开始导出MySQL源数据")
             try:
+                logger.info("---开始导出MySQL源数据")
                 export_mysql_data_main(source_export_dict, original_data_path, last_job_time, start_time_str2)
+                logger.info("---导出MySQL源数据已完成")
             except Exception as e:
                 logger.error("导出MySQL源数据出错：{}".format(e))
-            logger.info("---导出MySQL源数据已完成")
 
         # 加密数据
         path_not_exist_auto_create(encrypt_data_path, "已创建加密数据文件路径{}".format(original_data_path))
-        logger.info("---开始加密所有源数据")
         try:
+            logger.info("---开始加密所有源数据")
             encrypt_data_file(original_data_path, encrypt_data_path, public_rsa_key_path)
+            logger.info("---加密所有源数据已完成")
         except Exception as e:
             logger.error("加密数据出错：{}".format(e))
-        logger.info("---加密所有源数据已完成")
 
         # 压缩数据
-        logger.info("---开始压缩所有加密后的数据")
         try:
+            logger.info("---开始压缩所有加密后的数据")
             zip_data_dir(encrypt_data_path, data_package_path)
+            logger.info("---压缩所有加密后的数据已完成")
+            logger.info("加密压缩后的数据包文件路径为{}".format(data_package_path))
         except Exception as e:
             logger.error("压缩数据出错：{}".format(e))
-        logger.info("---压缩所有加密后的数据已完成")
-        logger.info("加密压缩后的数据包文件路径为{}".format(data_package_path))
 
         # 更新本次任务的时间
         try:
