@@ -71,9 +71,9 @@ def target_import_data_main_job():
             encrypt_data_path_list.append(encrypt_data_path)
             try:
                 unzip_data_dir(zip_file_path, encrypt_data_path)
+                logger.info("已将{}文件解压".format(zip_file_path))
             except Exception as e:
                 logger.error("{}解压数据出错：{}".format(zip_file, e))
-            logger.info("已将{}文件解压".format(zip_file_path))
         logger.info("---解压所有数据已完成")
         logger.info("解压后的文件根路径为{}".format(encrypt_data_base_path))
 
@@ -86,6 +86,7 @@ def target_import_data_main_job():
             original_data_path_list.append(original_data_path)
             try:
                 decrypt_file(original_data_path, encrypt_data_path, private_rsa_key_path, rsa_key)
+                logger.info("已将{}文件解密".format(encrypt_data_path))
             except Exception as e:
                 logger.error("{}解密数据出错：{}".format(encrypt_data_path, e))
             use_after_rmtree(encrypt_data_path, "{}目录数据解密后递归删除".format(encrypt_data_path))
@@ -97,19 +98,19 @@ def target_import_data_main_job():
         for original_data_path in original_data_path_list:
             logger.info("---正在导入{}路径的数据文件".format(original_data_path))
             if es_is_open == "true":
-                logger.info("开始导入ES源数据")
                 try:
+                    logger.info("开始导入ES源数据")
                     import_es_data_main(target_import_dict, original_data_path)
+                    logger.info("导入ES源数据已完成")
                 except Exception as e:
                     logger.error("{}路径导入ES源数据出错：{}".format(original_data_path, e))
-                logger.info("导入ES源数据已完成")
             if mysql_is_open == "true":
-                logger.info("开始导入MySQL源数据")
                 try:
+                    logger.info("开始导入MySQL源数据")
                     import_mysql_data_main(target_import_dict, original_data_path)
+                    logger.info("导入MySQL源数据已完成")
                 except Exception as e:
                     logger.error("{}路径导入MySQL源数据出错：{}".format(original_data_path, e))
-                logger.info("导入MySQL源数据已完成")
             logger.info("---导入{}路径的数据文件已完成".format(original_data_path))
             use_after_rmtree(original_data_path, "{}目录数据导入后递归删除".format(original_data_path))
 
