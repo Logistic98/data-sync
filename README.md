@@ -23,6 +23,8 @@
 │   ├── clear_data_tool.py
 │   ├── config.ini.example
 │   ├── last_job_time.json
+│   ├── build.sh
+│   ├── Dockerfile
 │   ├── export_es_data.py
 │   ├── export_mysql_data.py
 │   ├── gol.py
@@ -33,6 +35,8 @@
     ├── clear_data_tool.py
     ├── config.ini.example
     ├── last_job_time.json
+    ├── build.sh
+    ├── Dockerfile
     ├── gol.py
     ├── import_es_data.py
     ├── import_mysql_data.py
@@ -63,9 +67,13 @@ Step4：导出及导入数据
 
 执行 `source_export_data/source_export_data.py`导出数据，通过 `file_scp/push.py`将导出的 `data_package` 同步到 `target_import_data` 目录下，执行`target_import_data/target_import_data.py`导入数据。
 
+Step5：Docker打包部署
+
+source_export_data部署在导出端服务器，给build.sh脚本添加权限后即可一键构建，配置文件、日志、数据文件会挂载到容器外。target_import_data部署在导入端服务器，使用同上。构建镜像时配置了自启动，容器启动后即可自动启动主程序。
+
 ## 4. 注意事项
 
-[1] 注意Python环境的版本，支持Python3.8环境，不支持Python3.9环境（加密模块会出错），其余的版本没有测试。
+[1] 注意Python环境的版本，支持Python3.7、Python3.8环境，不支持Python3.9环境（加密模块会出错），其余的版本没有测试。
 
 [2] ES的依赖版本尽量与服务端相近，我这里使用的是7.16.2版本的elasticsearch依赖，在7.16.2和8.4.1版本的服务端ES上测试无问题。
 
