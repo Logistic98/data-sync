@@ -63,7 +63,7 @@ def source_export_data_main_job():
         start_time_str = "init"
         if last_job_time != "":
             try:
-                start_time_str = datetime.strptime(last_job_time, "%Y-%m-%d %H:%M:%S").strftime("%Y_%m_%d_%H_%M_%S")
+                start_time_str = datetime.strptime(last_job_time, "%Y-%m-%d %H:%M:%S").strftime("%Y%m%d%H%M%S")
             except Exception as e:
                 logger.error("格式化上次更新时间出错：{}".format(e))
         original_data_path = "{}/{}/{}--{}".format(base_path, original_data_base_path, start_time_str, start_time_str1)
