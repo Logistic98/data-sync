@@ -11,6 +11,8 @@ from utils import find_file_by_suffix
 def read_json_batch_import_es(es_connect, json_path, index_name, es_timeout, es_step):
     with open(json_path, 'r', encoding='utf-8') as file:
         json_str = file.read()
+        # json_str中可能会存在null字符串表示空值，但是python里面没有null这个关键字，需要将null定义为变量名，赋值python里面的None
+        null = None   # 不要删掉这行看似无用的代码，否则导入时遇到空值会报错 name 'null' is not defined
         # 将字符串形式的列表数据转成列表数据
         json_list = eval(json_str)
         # 按照配置文件中的步长进行写入，缓解批量写入的压力
