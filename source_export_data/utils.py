@@ -27,7 +27,7 @@ def read_json_to_dict(path):
 # 获取当前时间
 def get_now_time():
     now = time.localtime()
-    return time.strftime("%Y_%m_%d_%H_%M_%S", now), time.strftime("%Y-%m-%d %H:%M:%S", now)
+    return time.strftime("%Y%m%d%H%M%S", now), time.strftime("%Y-%m-%d %H:%M:%S", now)
 
 
 # 将数据文件加密
